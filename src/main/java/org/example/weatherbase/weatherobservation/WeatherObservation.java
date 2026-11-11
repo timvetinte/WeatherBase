@@ -11,11 +11,12 @@ import java.time.LocalDate;
 
 @Entity
 @NoArgsConstructor
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"station_id", "date"}))
 @Getter
 @Setter
 public class WeatherObservation {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne (optional = false)
     private Station station;
@@ -23,4 +24,9 @@ public class WeatherObservation {
     private LocalDate date;
     private BigDecimal valueMm;
     private String quality;
+
+    public String getAllInfo(){
+        return station.getName() + " " + date + ": " + valueMm + " mm. Quality: " + quality;
+    };
+
 }

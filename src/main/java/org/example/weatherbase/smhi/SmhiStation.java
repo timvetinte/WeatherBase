@@ -10,8 +10,8 @@ public class SmhiStation {
 
     private Long id;
     private String name;
-    private Long latitude;
-    private Long longitude;
+    private Double latitude;
+    private Double longitude;
     private boolean active;
 
 
