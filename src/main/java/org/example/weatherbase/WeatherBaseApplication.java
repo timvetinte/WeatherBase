@@ -23,24 +23,32 @@ public class WeatherBaseApplication {
     private boolean print = false;
 
     @Bean
-    @ConditionalOnProperty(name = "weatherbase.import-on-startup", havingValue = "true")
     CommandLineRunner runImport(SmhiImportService importService, WeatherObservationRepository weatherObservationRepository, StationRepository stationRepository) {
         return args -> {
-            System.out.println("Saved " + importService.importActiveStations().size() + " stations");
-            System.out.println("Saved " + importService.importObservations(78400L) + " stations");
-            importService.importAllObservations(false);
-            WeatherObservation today = weatherObservationRepository.findAll().getLast();
-            System.out.println(today.getAllInfo());
-            System.out.println(weatherObservationRepository.findAll().stream().count());
+
 
             if (print) {
+                int counter = 0;
                 for (WeatherObservation o : weatherObservationRepository.findAll()) {
-                    System.out.println(o.getAllInfo());
+                    counter++;
+                    System.out.println(counter + ". " + o.getAllInfo());
                 }
+                counter = 0;
                 for (Station s : stationRepository.findAll()) {
-                    System.out.println(s.getName() + "\n" + s.getLatitude() + " " + s.getLongitude() + "\n");
+                    counter++;
+                    System.out.println(counter + ". " + s.getName() + "\n" + s.getLatitude() + " " + s.getLongitude() + "\n");
                 }
             }
+//            System.out.println("Saved " + importService.importActiveStations().size() + " active stations");
+//            System.out.println("Visby " + importService.importArchive(78400L) + " archive rows");
+            importService.importAllNewObservations(false);
+            importService.importAllArchiveObservations(false);
+
+//            WeatherObservation today = weatherObservationRepository.findAll().getLast();
+//            System.out.println(today.getAllInfo());
+
+            System.out.println( weatherObservationRepository.count()/1000000 + " million Total observations");
+            System.out.println( weatherObservationRepository.count() + " observations");
         };
     }
 }

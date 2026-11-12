@@ -71,11 +71,27 @@ public class SmhiImportService {
         return observations.size();
     }
 
-//    public int importArchive(long stationId){
-//        List<SmhiObservation> all = new ArrayList<>(smhiClient.fetchCorrectedArchive)
-//    }
+    public int importArchive(long stationId){
+        List<SmhiObservation> all = new ArrayList<>(smhiClient.fetchArchive(PRECIPITATION, stationId));
+        all.addAll(smhiClient.fetchLatestMonths(PRECIPITATION, stationId));
+        batchInsert(stationId,all);
+        return all.size();
+    }
 
-    public void importAllObservations(boolean runImport) throws InterruptedException {
+
+    private void batchInsert(long stationId, List<SmhiObservation> observations) {
+        jdbcTemplate.batchUpdate("INSERT IGNORE INTO weather_observation (station_id, date, value_mm, quality) VALUES (?, ?, ?, ?)",
+                observations, 1000, (ps, o) -> {
+            ps.setLong(1, stationId);
+            ps.setObject(2, LocalDate.parse(o.getRef()));
+            ps.setBigDecimal(3, new BigDecimal(o.getValue()));
+            ps.setString(4, o.getQuality());
+                });
+    }
+
+
+
+    public void importAllNewObservations(boolean runImport) throws InterruptedException {
         if(runImport) {
             for (Station s : stationRepository.findAll().stream().toList()) {
                 try {
@@ -86,7 +102,27 @@ public class SmhiImportService {
                 Thread.sleep(500);
             }
         }else {
-            System.out.println("Import of observations set to false");
+            System.out.println("Import of new observations set to false");
+        }
+    };
+
+    public void importAllArchiveObservations(boolean runImport) throws InterruptedException {
+        int archiveTotal = 0;
+        int latestArchive;
+        if(runImport) {
+            for (Station s : stationRepository.findAll().stream().toList()) {
+                try {
+                    latestArchive = importArchive(s.getId());
+                    archiveTotal = archiveTotal + latestArchive;
+                    System.out.println(s.getName() + ": " + latestArchive + " archived observations.");
+                } catch (Exception e) {
+                    System.out.println("Failed station: " + s.getName() + ": " + e.getMessage());
+                }
+                Thread.sleep(500);
+            }
+            System.out.println("Total archives imported: " + archiveTotal);
+        }else {
+            System.out.println("Import of archive observations set to false");
         }
     };
 }
