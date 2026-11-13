@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +55,17 @@ public class SmhiImportService {
                 .map(this::toStation)
                 .toList();
 
+        System.out.println("imported active stations");
+        return stationRepository.saveAll(stations);
+    }
+
+    public List<Station> importInactiveStations(){
+        List<Station> stations = smhiClient.fetchStations(PRECIPITATION)
+                .stream().filter(Predicate.not(SmhiStation::isActive))
+                .map(this::toStation)
+                .toList();
+
+        System.out.println("Imported inactive stations");
         return stationRepository.saveAll(stations);
     }
 
@@ -73,7 +85,6 @@ public class SmhiImportService {
 
     public int importArchive(long stationId){
         List<SmhiObservation> all = new ArrayList<>(smhiClient.fetchArchive(PRECIPITATION, stationId));
-        all.addAll(smhiClient.fetchLatestMonths(PRECIPITATION, stationId));
         batchInsert(stationId,all);
         return all.size();
     }
@@ -91,9 +102,9 @@ public class SmhiImportService {
 
 
 
-    public void importAllNewObservations(boolean runImport) throws InterruptedException {
+    public void importAllNewObservationsActiveStations(boolean runImport) throws InterruptedException {
         if(runImport) {
-            for (Station s : stationRepository.findAll().stream().toList()) {
+            for (Station s : stationRepository.findAllByActiveTrue()) {
                 try {
                     System.out.println(s.getName() + ": " + importObservations(s.getId()) + " new");
                 } catch (Exception e) {
