@@ -4,6 +4,7 @@ package org.example.weatherbase.weatherobservation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -15,4 +16,33 @@ public interface WeatherObservationRepository extends JpaRepository<WeatherObser
     Set<LocalDate> findDatesByStationId(Long stationId);
 
     List<WeatherObservation> findTop10ByQualityOrderByValueMmDesc(String quality);
+
+    interface RainAvgByMonth {
+        Integer getMonth();
+        BigDecimal getAvgMm();
+    }
+
+    interface RainTotalByMonth {
+        Integer getMonth();
+        BigDecimal getTotalMm();
+    }
+
+    @Query(value = """
+    SELECT MONTH(date) AS month, AVG(value_mm) AS avgMm
+    FROM weather_observation
+    WHERE quality = 'G'
+    GROUP BY MONTH(date)
+    ORDER BY month """,
+            nativeQuery = true)
+    List<RainAvgByMonth> rainAvgByMonth();
+
+
+    @Query(value = """
+    SELECT MONTH(date) AS month, SUM(value_mm) AS totalMm
+    FROM weather_observation
+    WHERE quality = 'G'
+    GROUP BY MONTH(date)
+    ORDER BY month """,
+            nativeQuery = true)
+    List<RainTotalByMonth> rainTotalByMonth();
 }

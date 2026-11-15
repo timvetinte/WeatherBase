@@ -11,7 +11,12 @@ import java.time.LocalDate;
 
 @Entity
 @NoArgsConstructor
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"station_id", "date"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"station_id", "date"}),
+    indexes = {
+        @Index(columnList = "quality"),
+        @Index(columnList = "date"),
+        @Index(columnList = "value_mm")
+        })
 @Getter
 @Setter
 public class WeatherObservation {

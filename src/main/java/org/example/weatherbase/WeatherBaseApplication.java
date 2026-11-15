@@ -44,7 +44,7 @@ public class WeatherBaseApplication {
             System.out.println("Total stations: " + stationRepository.count());
             System.out.println("Active stations: " + stationRepository.countByActiveTrue());
             System.out.println("Inactive stations: " + stationRepository.countByActiveFalse());
-            importService.importAllNewObservationsActiveStations(false);
+            importService.importAllNewObservationsActiveStations(true);
             importService.importAllArchiveObservations(false);
 
 
@@ -60,6 +60,17 @@ public class WeatherBaseApplication {
 
             weatherObservationRepository.findTop10ByQualityOrderByValueMmDesc("G")
                     .forEach(o -> System.out.println(o.getAllInfo()));
+
+            System.out.println("Avg rain by month: ");
+            for (WeatherObservationRepository.RainAvgByMonth o : weatherObservationRepository.rainAvgByMonth()){
+                System.out.println(o.getMonth() + ": " + o.getAvgMm());
+            }
+
+            System.out.println("Total rain by month: ");
+            for (WeatherObservationRepository.RainTotalByMonth o : weatherObservationRepository.rainTotalByMonth()){
+                System.out.println(o.getMonth() + ": " + o.getTotalMm());
+            }
+
         };
     }
 }
