@@ -28,21 +28,20 @@ public interface WeatherObservationRepository extends JpaRepository<WeatherObser
     }
 
     @Query(value = """
-    SELECT MONTH(date) AS month, AVG(value_mm) AS avgMm
-    FROM weather_observation
-    WHERE quality = 'G'
-    GROUP BY MONTH(date)
+    SELECT month, SUM(total_mm) / SUM(days) AS avgMm
+    FROM monthly_precipitation
+    GROUP BY month
     ORDER BY month """,
             nativeQuery = true)
     List<RainAvgByMonth> rainAvgByMonth();
 
 
     @Query(value = """
-    SELECT MONTH(date) AS month, SUM(value_mm) AS totalMm
-    FROM weather_observation
-    WHERE quality = 'G'
-    GROUP BY MONTH(date)
+    SELECT month, SUM(total_mm) AS totalMm
+    FROM monthly_precipitation
+    GROUP BY month
     ORDER BY month """,
             nativeQuery = true)
     List<RainTotalByMonth> rainTotalByMonth();
+
 }
