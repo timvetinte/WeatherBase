@@ -110,7 +110,7 @@ public class SmhiImportService {
                 } catch (Exception e) {
                     System.out.println("Failed station: " + s.getName() + ": " + e.getMessage());
                 }
-                Thread.sleep(500);
+                Thread.sleep(100);
             }
         }else {
             System.out.println("Import of new observations set to false");

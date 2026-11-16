@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Lokala filer ###
+README.md
+.env

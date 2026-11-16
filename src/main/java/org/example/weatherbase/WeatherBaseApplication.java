@@ -23,6 +23,8 @@ public class WeatherBaseApplication {
         SpringApplication.run(WeatherBaseApplication.class, args);
     }
 
+    private boolean runALlImport = false;
+    private boolean update = true;
     private boolean print = true;
 
     @Bean
@@ -33,16 +35,32 @@ public class WeatherBaseApplication {
 
 //            System.out.println("Saved " + importService.importActiveStations().size() + " active stations");
 //            System.out.println("Visby " + importService.importArchive(78400L) + " archive rows");
-            importService.importActiveStations();
-            importService.importInactiveStations();
-            System.out.println("Total stations: " + stationRepository.count());
-            System.out.println("Active stations: " + stationRepository.countByActiveTrue());
-            System.out.println("Inactive stations: " + stationRepository.countByActiveFalse());
 
-            if(true) {
+
+
+
+            if(!runALlImport && update){
+                importService.importActiveStations();
+                importService.importInactiveStations();
+                System.out.println("Running refresh and update!");
+                sw_long.start("Update/Refresh");
+                sw_short.start("Import new observations");
+                importService.importAllNewObservationsActiveStations(true);
+                sw_short.stop();
+
+                sw_short.start("Refresh latest monthly precipitation");
+                monthlyPrecipitationService.refreshMonthly();
+                sw_short.stop();
+                sw_long.stop();
+            }
+
+            if(runALlImport) {
+                importService.importActiveStations();
+                importService.importInactiveStations();
+                System.out.println("Beginning imports, will take upwards of 15 minutes");
                 sw_long.start("All imports");
                 sw_short.start("New Observation import");
-                importService.importAllNewObservationsActiveStations(true);
+                importService.importAllNewObservationsActiveStations(false);
                 sw_short.stop();
                 sw_short.start("Monthly precipitation");
                 System.out.println("Building monthly precipitation...");
@@ -67,11 +85,14 @@ public class WeatherBaseApplication {
 
             if (print) {
                 sw_long.start("Print section");
+
+                System.out.println("Total stations: " + stationRepository.count());
+                System.out.println("Active stations: " + stationRepository.countByActiveTrue());
+                System.out.println("Inactive stations: " + stationRepository.countByActiveFalse());
+
+
                 int counter = 0;
-//                for (WeatherObservation o : weatherObservationRepository.findAll()) {
-//                    counter++;
-//                    System.out.println(counter + ". " + o.getAllInfo());
-//                }
+//
                 counter = 0;
                 for (Station s : stationRepository.findAll()) {
                     counter++;

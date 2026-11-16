@@ -27,12 +27,28 @@ public class MonthlyPrecipitationService {
         jdbcTemplate.update("TRUNCATE TABLE monthly_precipitation");
 
         jdbcTemplate.update("""
-INSERT INTO monthly_precipitation (station_id, year, month, total_mm, rainy_days, days)
-SELECT station_id, YEAR(date), MONTH(date), SUM(value_mm), SUM(value_mm >= 1), COUNT(*) 
-FROM weather_observation
-WHERE quality = 'G'
-GROUP BY station_id, YEAR(date), MONTH(date)""");
+                INSERT INTO monthly_precipitation (station_id, year, month, total_mm, rainy_days, days)
+                SELECT station_id, YEAR(date), MONTH(date), SUM(value_mm), SUM(value_mm >= 1), COUNT(*) 
+                FROM weather_observation
+                WHERE quality = 'G'
+                GROUP BY station_id, YEAR(date), MONTH(date)""");
 
         System.out.println("Monthly precipitation table done!");
+    }
+
+    public void refreshMonthly() {
+        jdbcTemplate.update(""" 
+                INSERT INTO monthly_precipitation (station_id, year, month, total_mm, rainy_days, days)
+                SELECT  station_id, YEAR(date), MONTH(date),
+                        SUM(value_mm), SUM(value_mm >=1), COUNT(*)
+                FROM weather_observation
+                WHERE quality = 'G'
+                AND date >= DATE_FORMAT(CURDATE() - INTERVAL 4 MONTH, '%Y-%m-01')
+                GROUP BY station_id, YEAR(date), MONTH(date)
+                ON DUPLICATE KEY UPDATE
+                    total_mm = values(total_mm),
+                    rainy_days = values(rainy_days),
+                    days = values(days)
+                """);
     }
 }
