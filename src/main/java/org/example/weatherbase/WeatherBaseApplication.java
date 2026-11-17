@@ -42,6 +42,7 @@ public class WeatherBaseApplication {
             if(!runALlImport && update){
                 importService.importActiveStations();
                 importService.importInactiveStations();
+
                 System.out.println("Running refresh and update!");
                 sw_long.start("Update/Refresh");
                 sw_short.start("Import new observations");
@@ -57,18 +58,24 @@ public class WeatherBaseApplication {
             if(runALlImport) {
                 importService.importActiveStations();
                 importService.importInactiveStations();
+
                 System.out.println("Beginning imports, will take upwards of 15 minutes");
+
                 sw_long.start("All imports");
                 sw_short.start("New Observation import");
                 importService.importAllNewObservationsActiveStations(false);
                 sw_short.stop();
+
+                sw_short.start("Archive import");
+                importService.importAllArchiveObservations(false);
+                sw_short.stop();
+
+
                 sw_short.start("Monthly precipitation");
                 System.out.println("Building monthly precipitation...");
                 monthlyPrecipitationService.buildAll();
                 sw_short.stop();
-                sw_short.start("Archive import");
-                importService.importAllArchiveObservations(false);
-                sw_short.stop();
+
                 sw_long.stop();
             };
 
@@ -99,7 +106,7 @@ public class WeatherBaseApplication {
                     System.out.println(counter + ". " + s.getName() + "\n" + s.getLatitude() + " " + s.getLongitude() + "\n");
                 }
 
-                System.out.println("Counting...");
+                System.out.println("Counting observations...");
                 sw_short.start("Counting observations and calculating");
                 long observationCount = weatherObservationRepository.count();
 

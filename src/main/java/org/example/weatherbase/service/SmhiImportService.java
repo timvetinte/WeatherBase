@@ -69,18 +69,10 @@ public class SmhiImportService {
         return stationRepository.saveAll(stations);
     }
 
-    public int importObservations(long stationId){
-        Station station = stationRepository.findById(stationId)
-                .orElseThrow(()-> new IllegalArgumentException("Station missing: " + stationId));
-
-        Set<LocalDate> seenDates = new HashSet<>(weatherObservationRepository.findDatesByStationId(stationId));
-
-        List<WeatherObservation> observations = smhiClient.fetchLatestMonths(PRECIPITATION, stationId).stream()
-                .map(o-> toWeatherObservation(o, station))
-                .filter(o-> seenDates.add(o.getDate())).toList();
-        
-        weatherObservationRepository.saveAll(observations);
-        return observations.size();
+    public int importObservations(long stationId) {
+        List<SmhiObservation> latest = smhiClient.fetchLatestMonths(PRECIPITATION, stationId);
+        batchInsert(stationId, latest);
+        return latest.size();
     }
 
     public int importArchive(long stationId){
@@ -91,7 +83,7 @@ public class SmhiImportService {
 
 
     private void batchInsert(long stationId, List<SmhiObservation> observations) {
-        jdbcTemplate.batchUpdate("INSERT IGNORE INTO weather_observation (station_id, date, value_mm, quality) VALUES (?, ?, ?, ?)",
+        jdbcTemplate.batchUpdate("INSERT IGNORE INTO weather_observation (station_id, date, value_mm, quality) VALUES (?, ?, ?, ?) AS new ON DUPLICATE KEY UPDATE value_mm = new.value_mm, quality = new.quality",
                 observations, 1000, (ps, o) -> {
             ps.setLong(1, stationId);
             ps.setObject(2, LocalDate.parse(o.getRef()));
@@ -106,7 +98,7 @@ public class SmhiImportService {
         if(runImport) {
             for (Station s : stationRepository.findAllByActiveTrue()) {
                 try {
-                    System.out.println(s.getName() + ": " + importObservations(s.getId()) + " new");
+                    System.out.println(s.getName() + ": " + importObservations(s.getId()) + " observations processed.");
                 } catch (Exception e) {
                     System.out.println("Failed station: " + s.getName() + ": " + e.getMessage());
                 }
