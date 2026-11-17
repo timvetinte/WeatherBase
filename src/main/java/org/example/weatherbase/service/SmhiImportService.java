@@ -83,7 +83,7 @@ public class SmhiImportService {
 
 
     private void batchInsert(long stationId, List<SmhiObservation> observations) {
-        jdbcTemplate.batchUpdate("INSERT IGNORE INTO weather_observation (station_id, date, value_mm, quality) VALUES (?, ?, ?, ?) AS new ON DUPLICATE KEY UPDATE value_mm = new.value_mm, quality = new.quality",
+        jdbcTemplate.batchUpdate("INSERT INTO weather_observation (station_id, date, value_mm, quality) VALUES (?, ?, ?, ?) AS new ON DUPLICATE KEY UPDATE value_mm = new.value_mm, quality = new.quality",
                 observations, 1000, (ps, o) -> {
             ps.setLong(1, stationId);
             ps.setObject(2, LocalDate.parse(o.getRef()));
