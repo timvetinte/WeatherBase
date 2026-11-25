@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/weather?rewriteBatchedStatements=true
+    restart: unless-stopped

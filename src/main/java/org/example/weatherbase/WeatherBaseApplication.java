@@ -10,8 +10,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.StopWatch;
 
+@EnableScheduling
 @SpringBootApplication
 public class WeatherBaseApplication {
 
@@ -98,13 +101,13 @@ public class WeatherBaseApplication {
                 System.out.println("Inactive stations: " + stationRepository.countByActiveFalse());
 
 
-                int counter = 0;
-//
-                counter = 0;
-                for (Station s : stationRepository.findAll()) {
-                    counter++;
-                    System.out.println(counter + ". " + s.getName() + "\n" + s.getLatitude() + " " + s.getLongitude() + "\n");
-                }
+//                int counter = 0;
+////
+//                counter = 0;
+//                for (Station s : stationRepository.findAll()) {
+//                    counter++;
+//                    System.out.println(counter + ". " + s.getName() + "\n" + s.getLatitude() + " " + s.getLongitude() + "\n");
+//                }
 
                 System.out.println("Counting observations...");
                 sw_short.start("Counting observations and calculating");
